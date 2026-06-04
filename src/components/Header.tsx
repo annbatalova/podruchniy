@@ -8,19 +8,24 @@ import {
   History as HistoryIcon,
   Image as ImageIcon,
   LogOut,
-  Star
+  Star,
+  ShieldCheck,
+  Bookmark
 } from 'lucide-react';
 
+
 interface HeaderProps {
-  activeTab: 'dashboard' | 'compare' | 'standards' | 'calculators' | 'cabinet';
-  setActiveTab: (tab: 'dashboard' | 'compare' | 'standards' | 'calculators' | 'cabinet') => void;
+  activeTab: 'dashboard' | 'compare' | 'standards' | 'calculators' | 'cabinet' | 'news' | 'moderator';
+  setActiveTab: (tab: 'dashboard' | 'compare' | 'standards' | 'calculators' | 'cabinet' | 'news' | 'moderator') => void;
   userName: string;
   userLogin: string;
   avatarUrl: string;
-  onCabinetAction: (action: 'password' | 'history' | 'avatar' | 'profile' | 'favorites') => void;
+  onCabinetAction: (action: 'password' | 'history' | 'avatar' | 'profile' | 'favorites' | 'my_articles') => void;
   onLogout: () => void;
   isLoggedIn?: boolean;
   onAuthClick?: () => void;
+  userRole: 'author' | 'moderator';
+  setUserRole: (role: 'author' | 'moderator') => void;
 }
 
 export default function Header({
@@ -32,10 +37,13 @@ export default function Header({
   onCabinetAction,
   onLogout,
   isLoggedIn = true,
-  onAuthClick
+  onAuthClick,
+  userRole,
+  setUserRole
 }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -55,7 +63,10 @@ export default function Header({
     { id: 'compare', name: 'Сравнительная витрина', hasDropdown: false },
     { id: 'standards', name: 'Отраслевые коэффициенты', hasDropdown: false },
     { id: 'calculators', name: 'Калькуляторы', hasDropdown: true },
+    { id: 'news', name: 'Новости и статьи', hasDropdown: false },
+    ...(userRole === 'moderator' ? [{ id: 'moderator' as any, name: 'Модерация', hasDropdown: false }] : [])
   ] as const;
+
 
   const getInitials = (name: string) => {
     if (!name) return 'U';
@@ -63,7 +74,7 @@ export default function Header({
     return parts.map(p => p[0]).slice(0, 2).join('').toUpperCase();
   };
 
-  const handleActionClick = (action: 'password' | 'history' | 'avatar' | 'profile' | 'favorites') => {
+  const handleActionClick = (action: 'password' | 'history' | 'avatar' | 'profile' | 'favorites' | 'my_articles') => {
     setDropdownOpen(false);
     onCabinetAction(action);
   };
@@ -199,6 +210,14 @@ export default function Header({
                   </button>
 
                   <button
+                    onClick={() => handleActionClick('my_articles')}
+                    className="w-full px-3.5 py-2.5 text-left text-xs text-slate-700 hover:bg-slate-50 transition flex items-center gap-2.5 font-semibold cursor-pointer"
+                  >
+                    <Bookmark className="w-4 h-4 text-indigo-500 fill-indigo-500/10" />
+                    <span>Мои публикации</span>
+                  </button>
+
+                  <button
                     onClick={() => handleActionClick('avatar')}
                     className="w-full px-3.5 py-2.5 text-left text-xs text-slate-700 hover:bg-slate-50 transition flex items-center gap-2.5 font-semibold cursor-pointer"
                   >
@@ -207,6 +226,28 @@ export default function Header({
                   </button>
 
                   <div className="h-px bg-slate-100 my-1.5" />
+
+                  {/* Role Switcher Toggle */}
+                  <button
+                    onClick={() => {
+                      const nextRole = userRole === 'author' ? 'moderator' : 'author';
+                      setUserRole(nextRole);
+                      localStorage.setItem('profile_userRole', nextRole);
+                      setDropdownOpen(false);
+                      if (nextRole === 'moderator') {
+                        setActiveTab('moderator');
+                      } else {
+                        setActiveTab('cabinet');
+                      }
+                    }}
+                    className="w-full px-3.5 py-2.5 text-left text-xs text-indigo-700 hover:bg-indigo-50/40 transition flex items-center gap-2.5 font-bold cursor-pointer"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-indigo-600 animate-pulse" />
+                    <span>{userRole === 'author' ? 'Войти как модератор' : 'Войти как автор'}</span>
+                  </button>
+
+                  <div className="h-px bg-slate-100 my-1.5" />
+
 
                   <button
                     onClick={() => {

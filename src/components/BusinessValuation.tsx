@@ -235,7 +235,7 @@ export default function BusinessValuation({ company }: BusinessValuationProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* Comparative */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-sky-500/30 transition-all duration-200">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col hover:border-sky-500/30 transition-all duration-200">
             <div>
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
                 Сравнительный подход (Мультипликаторы)
@@ -244,14 +244,10 @@ export default function BusinessValuation({ company }: BusinessValuationProps) {
                 {calculatedMetrics.averageMultiplierEquity.toLocaleString('ru-RU')} млн ₽
               </div>
             </div>
-            <div className="text-[10px] text-sky-600 font-semibold mt-2.5 flex items-center gap-1">
-              <GitCommit className="w-3.5 h-3.5 shrink-0 text-sky-400" />
-              <span>Оценка Equity через {selectedIndustry}</span>
-            </div>
           </div>
 
           {/* Income Approach */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-sky-500/30 transition-all duration-200">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col hover:border-sky-500/30 transition-all duration-200">
             <div>
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
                 Доходный подход (Модель DCF)
@@ -260,14 +256,10 @@ export default function BusinessValuation({ company }: BusinessValuationProps) {
                 {calculatedMetrics.totalDCF_Equity.toLocaleString('ru-RU')} млн ₽
               </div>
             </div>
-            <div className="text-[10px] text-emerald-600 font-semibold mt-2.5 flex items-center gap-1">
-              <Coins className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
-              <span>Дисконтирование потоков ({dcfFlowType.toUpperCase()})</span>
-            </div>
           </div>
 
           {/* Asset/Cost-based Approach */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between hover:border-sky-500/30 transition-all duration-200">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col hover:border-sky-500/30 transition-all duration-200">
             <div>
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
                 Затратный подход (Собственные средства)
@@ -275,10 +267,6 @@ export default function BusinessValuation({ company }: BusinessValuationProps) {
               <div className="text-xl font-black text-slate-900 font-mono">
                 {calculatedMetrics.costBasedEquity.toLocaleString('ru-RU')} млн ₽
               </div>
-            </div>
-            <div className="text-[10px] text-indigo-600 font-semibold mt-2.5 flex items-center gap-1">
-              <Layers className="w-3.5 h-3.5 shrink-0 text-indigo-400" />
-              <span>С учетом ОНА/ОНО разниц</span>
             </div>
           </div>
 

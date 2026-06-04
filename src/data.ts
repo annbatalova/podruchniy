@@ -23,66 +23,68 @@ export const mockCompanies: Company[] = [
       { year: 2018, revenue: 980000000, netProfit: 220000000, equity: 740000000, assets: 1250000000 },
       { year: 2019, revenue: 1080000000, netProfit: 250000000, equity: 810000000, assets: 1350000000 },
       { year: 2020, revenue: 1150000000, netProfit: 270000000, equity: 880000000, assets: 1450000000 },
-      { year: 2021, revenue: 1250000000, netProfit: 290000000, equity: 950000000, assets: 1550000000 },
-      { year: 2022, revenue: 1420000000, netProfit: 305000000, equity: 1020000000, assets: 1680000000 },
-      { year: 2023, revenue: 1680000000, netProfit: 320000000, equity: 1110000000, assets: 1790000000 },
-      { year: 2024, revenue: 1910000000, netProfit: 355000000, equity: 1250000000, assets: 1920000000 },
-      { year: 2025, revenue: 2150000000, netProfit: 395000000, equity: 1410000000, assets: 2110000000 }
+      { year: 2021, revenue: 1250000000, netProfit: 290000000, equity: 950000000, assets: 1550000000 }
     ],
     ratios: [
       {
         id: 'cur_liq',
         name: 'Коэффициент текущей ликвидности',
         value: 1.78,
-        description: 'Характеризует обеспеченность компании оборотными средствами для ведения хозяйственной деятельности и своевременного погашения обязательств.',
-        norm: '> 1.5 - 2.0',
+        description: 'является мерой платежеспособности организации, способности погашать текущие (до года) обязательства организации. Кредиторы широко используют данный коэффициент в оценке текущего финансового положения организации, опасности выдачи ей краткосрочных займов.',
+        formula: 'Коэффициент текущей ликвидности = Оборотные активы / Краткосрочные обязательства',
+        source: 'https://www.audit-it.ru/finanaliz/terms/liquidity/current_ratio.html',
         status: 'healthy'
       },
       {
         id: 'autonomy',
         name: 'Коэффициент автономии',
         value: 0.67,
-        description: 'Показывает степень финансовой независимости компании от внешних заемных источников.',
-        norm: '> 0.5',
+        description: 'Коэффициент характеризует отношение собственного капитала к общей сумме капитала (активов) организации. Коэффициент показывает, насколько организация независима от кредиторов. Чем меньше значение коэффициента, тем в большей степени организация зависима от заемных источников финансирования, тем менее устойчивое у нее финансовое положение.',
+        formula: 'Коэффициент автономии = Собственный капитал / Активы',
+        source: 'https://www.audit-it.ru/finanaliz/terms/solvency/coefficient_of_autonomy.html',
         status: 'healthy'
       },
       {
         id: 'roa',
-        name: 'Рентабельность активов (ROA)',
-        value: 18.7, // %
-        description: 'Демонстрирует эффективность использования активов компании для извлечения прибыли.',
-        norm: '> 5%',
+        name: 'Рентабельность активов',
+        value: 18.7,
+        description: 'Рентабельность активов - финансовый коэффициент, характеризующий отдачу от использования всех активов организации. Коэффициент показывает способность организации генерировать прибыль без учета структуры его капитала (финансового левериджа), качество управления активами.',
+        formula: 'Рентабельность активов = Чистая прибыль / Активы',
+        source: 'https://www.audit-it.ru/finanaliz/terms/performance/return_on_assets.html?sphrase_id=6715777',
         status: 'healthy'
       },
       {
         id: 'ros',
-        name: 'Рентабельность продаж (ROS)',
-        value: 18.4, // %
-        description: 'Отражает долю чистой прибыли в каждом рубле выручки от продаж.',
-        norm: '> 10%',
+        name: 'Рентабельность продаж',
+        value: 18.4,
+        description: 'Рентабельность продаж характеризует эффективность основной деятельности с учетом коммерческих и управленческих расходов.',
+        formula: 'Рентабельность продаж = Прибыль от продаж / Выручка',
+        source: 'https://www.audit-it.ru/finanaliz/terms/performance/return_on_sales.html?sphrase_id=6715780',
         status: 'healthy'
       },
       {
         id: 'abs_liq',
-        name: 'Абсолютная ликвидность',
+        name: 'Коэффициент абсолютной ликвидности',
         value: 1.25,
-        description: 'Показывает, какую часть краткосрочной задолженности организация может погасить в ближайшее время за счет денежных средств.',
-        norm: '> 0.2',
+        description: 'Коэффициент абсолютной ликвидности – показывает отношение самых ликвидных активов организации – денежных средств и краткосрочных финансовых вложений – к краткосрочным обязательствам. Коэффициент отражает достаточность наиболее ликвидных активов для быстрого расчета по текущим обязательствам, характеризует "мгновенную" платежеспособность организации.',
+        formula: 'Коэффициент абсолютной ликвидности = (Денежные средства + Краткосрочные финансовые вложения) / Текущие обязательства',
+        source: 'https://www.audit-it.ru/finanaliz/terms/liquidity/cash_ratio.html',
         status: 'healthy'
       },
       {
         id: 'net_margin',
-        name: 'Соотношение заемных средств',
+        name: 'Коэффициент финансового левериджа',
         value: 0.49,
-        description: 'Коэффициент капитализации. Отражает степень финансовой зависимости компании от внешних кредиторов.',
-        norm: '< 0.7',
+        description: 'Коэффициент характеризует плечо финансового рычага и отражает соотношение заемных средств (заемного капитала) и собственного капитала организации. Коэффициент показывает степень финансовой зависимости компании от внешних кредиторов, устойчивости структуры пассивов и её уровень инвестиционного риска.',
+        formula: 'Коэффициент финансового левериджа = Заемный капитал / Собственный капитал',
+        source: 'https://www.audit-it.ru/finanaliz/terms/solvency/gearing_ratio.html',
         status: 'healthy'
       }
     ],
     bankruptcy: null,
     arbitration: {
       plaintiffCount: 22,
-      plaintiffAmount: 145.5, // millions rubles
+      plaintiffAmount: 145.5,
       defendantCount: 8,
       defendantAmount: 31.6,
       unknownCount: 4,
@@ -137,31 +139,35 @@ export const mockCompanies: Company[] = [
         name: 'Коэффициент текущей ликвидности',
         value: 0.35,
         description: 'Характеризует обеспеченность компании оборотными средствами для ведения хозяйственной деятельности.',
-        norm: '> 1.5 - 2.0',
+        formula: 'Коэффициент текущей ликвидности = Оборотные активы / Краткосрочные обязательства',
+        source: 'https://www.audit-it.ru/finanaliz/terms/liquidity/current_ratio.html',
         status: 'critical'
       },
       {
         id: 'autonomy',
         name: 'Коэффициент автономии',
         value: 0.08,
-        description: 'Показывает степень финансовой независимости компании от внешних источников.',
-        norm: '> 0.5',
+        description: 'Показать степень финансовой независимости компании от внешних источников.',
+        formula: 'Коэффициент автономии = Собственный капитал / Активы',
+        source: 'https://www.audit-it.ru/finanaliz/terms/solvency/coefficient_of_autonomy.html',
         status: 'critical'
       },
       {
         id: 'roa',
         name: 'Рентабельность активов (ROA)',
-        value: -12.4, // %
+        value: -12.4,
         description: 'Эффективность использования имущества для генерации чистой прибыли.',
-        norm: '> 5%',
+        formula: 'Рентабельность активов = Чистая прибыль / Активы',
+        source: 'https://www.audit-it.ru/finanaliz/terms/performance/return_on_assets.html?sphrase_id=6715777',
         status: 'critical'
       },
       {
         id: 'ros',
         name: 'Рентабельность продаж (ROS)',
-        value: -25.0, // %
+        value: -25.0,
         description: 'Маржинальность бизнеса по чистой прибыли.',
-        norm: '> 10%',
+        formula: 'Рентабельность продаж = Прибыль от продаж / Выручка',
+        source: 'https://www.audit-it.ru/finanaliz/terms/performance/return_on_sales.html?sphrase_id=6715780',
         status: 'critical'
       },
       {
@@ -169,7 +175,8 @@ export const mockCompanies: Company[] = [
         name: 'Абсолютная ликвидность',
         value: 0.02,
         description: 'Способность срочно погасить краткосрочную задолженность.',
-        norm: '> 0.2',
+        formula: 'Коэффициент абсолютной ликвидности = (Денежные средства + Краткосрочные финансовые вложения) / Текущие обязательства',
+        source: 'https://www.audit-it.ru/finanaliz/terms/liquidity/cash_ratio.html',
         status: 'critical'
       },
       {
@@ -177,7 +184,8 @@ export const mockCompanies: Company[] = [
         name: 'Соотношение заемных средств',
         value: 12.5,
         description: 'Коэффициент зависимости от долга. Серьезная финансовая нагрузка.',
-        norm: '< 0.7',
+        formula: 'Коэффициент финансового левериджа = Заемный капитал / Собственный капитал',
+        source: 'https://www.audit-it.ru/finanaliz/terms/solvency/gearing_ratio.html',
         status: 'critical'
       }
     ],
@@ -260,7 +268,7 @@ export const mockCompanies: Company[] = [
     scorePercent: 64,
     scoringDetails: 'Средний уровень кредитоспособности. В целом стабильное хозяйственное положение, однако наблюдаются некоторые кассовые задержки и повышенная доля заемного капитала. Риски дефолта умеренные, требующие периодического мониторинга финансовой отчетности контрагента.',
     financials: [
-      { year: 2016, revenue: 310000, netProfit: 8000, equity: 32000, assets: 160000 },
+      { year: 2016, revenue: 310000, netProfit: 8000, equity: 32000, assets: 160005 },
       { year: 2017, revenue: 340000, netProfit: 9500, equity: 36000, assets: 180000 },
       { year: 2018, revenue: 370000, netProfit: 10500, equity: 40000, assets: 200000 },
       { year: 2019, revenue: 410000, netProfit: 11200, equity: 43000, assets: 220000 },
@@ -277,7 +285,8 @@ export const mockCompanies: Company[] = [
         name: 'Коэффициент текущей ликвидности',
         value: 1.15,
         description: 'Характеризует способность покрывать краткосрочные пассивы текущими активами.',
-        norm: '> 1.5 - 2.0',
+        formula: 'Коэффициент текущей ликвидности = Оборотные активы / Краткосрочные обязательства',
+        source: 'https://www.audit-it.ru/finanaliz/terms/liquidity/current_ratio.html',
         status: 'caution'
       },
       {
@@ -285,23 +294,26 @@ export const mockCompanies: Company[] = [
         name: 'Коэффициент автономии',
         value: 0.15,
         description: 'Отражает степень зависимости компании от заемных денег.',
-        norm: '> 0.5',
+        formula: 'Коэффициент автономии = Собственный капитал / Активы',
+        source: 'https://www.audit-it.ru/finanaliz/terms/solvency/coefficient_of_autonomy.html',
         status: 'critical'
       },
       {
         id: 'roa',
         name: 'Рентабельность активов (ROA)',
-        value: 3.94, // %
+        value: 3.94,
         description: 'Показывает рентабельность совокупных ресурсов.',
-        norm: '> 5%',
+        formula: 'Рентабельность активов = Чистая прибыль / Активы',
+        source: 'https://www.audit-it.ru/finanaliz/terms/performance/return_on_assets.html?sphrase_id=6715777',
         status: 'caution'
       },
       {
         id: 'ros',
         name: 'Рентабельность продаж (ROS)',
-        value: 2.45, // %
+        value: 2.45,
         description: 'Доля прибыли в продажах.',
-        norm: '> 10%',
+        formula: 'Рентабельность продаж = Прибыль от продаж / Выручка',
+        source: 'https://www.audit-it.ru/finanaliz/terms/performance/return_on_sales.html?sphrase_id=6715780',
         status: 'caution'
       },
       {
@@ -309,7 +321,8 @@ export const mockCompanies: Company[] = [
         name: 'Абсолютная ликвидность',
         value: 0.11,
         description: 'Резерв свободных финансовых средств под немедленное погашение кредитов.',
-        norm: '> 0.2',
+        formula: 'Коэффициент абсолютной ликвидности = (Денежные средства + Краткосрочные финансовые вложения) / Текущие обязательства',
+        source: 'https://www.audit-it.ru/finanaliz/terms/liquidity/cash_ratio.html',
         status: 'caution'
       },
       {
@@ -317,7 +330,8 @@ export const mockCompanies: Company[] = [
         name: 'Соотношение заемных средств',
         value: 0.85,
         description: 'Уровень привлеченного долга относительно своего.',
-        norm: '< 0.7',
+        formula: 'Коэффициент финансового левериджа = Заемный капитал / Собственный капитал',
+        source: 'https://www.audit-it.ru/finanaliz/terms/solvency/gearing_ratio.html',
         status: 'caution'
       }
     ],
@@ -372,7 +386,8 @@ export const mockCompanies: Company[] = [
         name: 'Коэффициент текущей ликвидности',
         value: 2.10,
         description: 'Характеризует обеспеченность краткосрочных обязательств оборотными средствами.',
-        norm: '> 1.5 - 2.0',
+        formula: 'Коэффициент текущей ликвидности = Оборотные активы / Краткосрочные обязательства',
+        source: 'https://www.audit-it.ru/finanaliz/terms/liquidity/current_ratio.html',
         status: 'healthy'
       },
       {
@@ -380,23 +395,26 @@ export const mockCompanies: Company[] = [
         name: 'Коэффициент автономии',
         value: 0.68,
         description: 'Показывает высокую долю собственных средств в общей структуре баланса.',
-        norm: '> 0.5',
+        formula: 'Коэффициент автономии = Собственный капитал / Активы',
+        source: 'https://www.audit-it.ru/finanaliz/terms/solvency/coefficient_of_autonomy.html',
         status: 'healthy'
       },
       {
         id: 'roa',
         name: 'Рентабельность активов (ROA)',
-        value: 43.20, // %
+        value: 43.20,
         description: 'Сверхвысокая рентабельность, характерная для зрелого программного бизнеса без долгов.',
-        norm: '> 5%',
+        formula: 'Рентабельность активов = Чистая прибыль / Активы',
+        source: 'https://www.audit-it.ru/finanaliz/terms/performance/return_on_assets.html?sphrase_id=6715777',
         status: 'healthy'
       },
       {
         id: 'ros',
         name: 'Рентабельность продаж (ROS)',
-        value: 21.90, // %
+        value: 21.90,
         description: 'Высокая операционная эффективность и чистая рентабельность продаж IT-продуктов.',
-        norm: '> 10%',
+        formula: 'Рентабельность продаж = Прибыль от продаж / Выручка',
+        source: 'https://www.audit-it.ru/finanaliz/terms/performance/return_on_sales.html?sphrase_id=6715780',
         status: 'healthy'
       },
       {
@@ -404,7 +422,8 @@ export const mockCompanies: Company[] = [
         name: 'Абсолютная ликвидность',
         value: 1.45,
         description: 'Организация обладает достаточным объемом свободной ликвидности (денег на счетах) для закрытия немедленных требований.',
-        norm: '> 0.2',
+        formula: 'Коэффициент абсолютной ликвидности = (Денежные средства + Краткосрочные финансовые вложения) / Текущие обязательства',
+        source: 'https://www.audit-it.ru/finanaliz/terms/liquidity/cash_ratio.html',
         status: 'healthy'
       },
       {
@@ -412,7 +431,8 @@ export const mockCompanies: Company[] = [
         name: 'Соотношение заемных средств',
         value: 0.32,
         description: 'Низкая зависимость от долговых заимствований и заемного капитала.',
-        norm: '< 0.7',
+        formula: 'Коэффициент финансового левериджа = Заемный капитал / Собственный капитал',
+        source: 'https://www.audit-it.ru/finanaliz/terms/solvency/gearing_ratio.html',
         status: 'healthy'
       }
     ],

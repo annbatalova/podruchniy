@@ -138,18 +138,32 @@ export default function RatiosSelector({ company }: RatiosSelectorProps) {
               </div>
               
               <div className="space-y-1 border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
-                <span className="text-slate-400 dark:text-slate-500 block">Формула расчета</span>
-                <span className="font-extrabold text-slate-800 dark:text-slate-200 font-mono text-[11px] block leading-tight">
-                  {formulaInfo.formula}
+                <span className="text-slate-400 dark:text-slate-500 block">Порядок расчета</span>
+                <span className="font-extrabold text-slate-800 dark:text-slate-200 font-sans text-[11px] block leading-tight">
+                  {selectedRatio.formula || formulaInfo.formula}
                 </span>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
                 <span className="text-slate-400 dark:text-slate-500 block">Компоненты (Бухг. баланс / ОФР)</span>
-                <span className="font-bold text-slate-700 dark:text-slate-300 block text-[10px] leading-tight">
+                <span className="font-bold text-slate-700 dark:text-slate-300 block text-[10px] leading-tight font-mono">
                   {formulaInfo.components}
                 </span>
               </div>
+
+              {selectedRatio.source && (
+                <div className="space-y-1">
+                  <span className="text-slate-400 dark:text-slate-500 block text-[10px]">Источник</span>
+                  <a
+                    href={selectedRatio.source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 block text-[10px] leading-tight hover:underline truncate"
+                  >
+                    {selectedRatio.source.replace('https://', '')}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 

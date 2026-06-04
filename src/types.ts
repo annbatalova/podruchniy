@@ -11,7 +11,9 @@ export interface RatioItem {
   name: string;
   value: number;
   description: string;
-  norm: string;
+  norm?: string;
+  formula?: string;
+  source?: string;
   status: 'healthy' | 'caution' | 'critical';
 }
 

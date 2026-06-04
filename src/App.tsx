@@ -19,9 +19,12 @@ import CompareShowcase from './components/CompareShowcase';
 import StandardsView from './components/StandardsView';
 import GenericCalculators from './components/GenericCalculators';
 import CabinetView from './components/CabinetView';
+import PublicationEditor from './components/PublicationEditor';
 import FinancialStatements from './components/FinancialStatements';
 import AuthModal from './components/AuthModal';
 import EmptyState from './components/EmptyState';
+import NewsView from './components/NewsView';
+import ModeratorView from './components/ModeratorView';
 
 export default function App() {
   const [companies, setCompanies] = useState<any[]>([]);
@@ -42,7 +45,13 @@ export default function App() {
 
   // Theme & Navigation State - Locked to light mode per user requirements
   const darkMode = false;
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'compare' | 'standards' | 'calculators' | 'cabinet'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'compare' | 'standards' | 'calculators' | 'cabinet' | 'news' | 'moderator'>('dashboard');
+  const [isEditingPublication, setIsEditingPublication] = useState<boolean>(false);
+  const [editingNewsArticle, setEditingNewsArticle] = useState<any | null>(null);
+  const [userRole, setUserRole] = useState<'author' | 'moderator'>(() => {
+    return (localStorage.getItem('profile_userRole') as any) || 'author';
+  });
+  const [isBentoEditActive, setIsBentoEditActive] = useState<boolean>(false);
 
   useEffect(() => {
     document.documentElement.classList.remove('dark');
@@ -119,6 +128,19 @@ export default function App() {
 
   const [initialIndustry, setInitialIndustry] = useState<'banking' | 'wholesale' | 'software' | undefined>(undefined);
 
+  const [simulatorTask, setSimulatorTask] = useState<any>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('active_simulator_task');
+    if (saved) {
+      try {
+        setSimulatorTask(JSON.parse(saved));
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [selectedCompanyId, activeTab]);
+
   useEffect(() => {
     localStorage.setItem('profile_favorites', JSON.stringify(favorites));
   }, [favorites]);
@@ -143,18 +165,25 @@ export default function App() {
     });
   };
 
-  const handleSelectIndustryFromFavorites = (id: 'banking' | 'wholesale' | 'software') => {
-    setInitialIndustry(id);
-    setActiveTab('standards');
+  const handleSelectIndustryFromFavorites = (id: string) => {
+    if (id === 'custom') {
+      setActiveTab('compare');
+    } else {
+      setInitialIndustry(id as any);
+      setActiveTab('standards');
+    }
   };
 
-  const handleCabinetAction = (action: 'password' | 'history' | 'avatar' | 'profile' | 'favorites') => {
+  const handleCabinetAction = (action: 'password' | 'history' | 'avatar' | 'profile' | 'favorites' | 'my_articles') => {
     setActiveTab('cabinet');
     if (action === 'history') {
       setCabinetSubTab('history');
       setHighlightSection('none');
     } else if (action === 'favorites') {
       setCabinetSubTab('favorites');
+      setHighlightSection('none');
+    } else if (action === 'my_articles') {
+      setCabinetSubTab('my_articles');
       setHighlightSection('none');
     } else {
       setCabinetSubTab('settings');
@@ -293,6 +322,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={(tab) => {
           setActiveTab(tab);
+          setIsEditingPublication(false);
           // reset visual sections focus if changing tabs
           if (tab !== 'dashboard') {
             setActiveSection('');
@@ -310,6 +340,8 @@ export default function App() {
         }}
         isLoggedIn={isLoggedIn}
         onAuthClick={() => setIsAuthModalOpen(true)}
+        userRole={userRole}
+        setUserRole={setUserRole}
       />
 
       {/* Main split layout container (Sidebar + Content Workspace) */}
@@ -330,7 +362,11 @@ export default function App() {
         <main className="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-[#e0f1fe] via-[#f1f5f9] to-[#fae8ff]/70 relative">
           
           {/* Dynamic Service Router Section */}
-          <div className="flex-1 p-6 lg:p-8 space-y-12 max-w-6xl w-full mx-auto overflow-y-auto max-h-[calc(100vh-64px)] style-scrollbar">
+          <div className={`flex-1 space-y-12 w-full mx-auto overflow-y-auto max-h-[calc(100vh-64px)] style-scrollbar transition-all duration-300 ${
+            activeTab === 'news' 
+              ? 'p-6 md:p-8 lg:p-10 max-w-[1450px]' 
+              : 'p-6 lg:p-8 max-w-6xl'
+          }`}>
           
           {activeTab === 'dashboard' && (
             <>
@@ -585,28 +621,80 @@ export default function App() {
           )}
 
           {activeTab === 'cabinet' && (
-            <CabinetView 
+            isEditingPublication ? (
+              <PublicationEditor 
+                companies={companies.length ? companies : mockCompanies}
+                userName={userName}
+                userLogin={userLogin}
+                avatarUrl={avatarUrl}
+                onBack={() => {
+                  setEditingNewsArticle(null);
+                  setIsEditingPublication(false);
+                }}
+                editingArticle={editingNewsArticle}
+                onSaveSuccess={() => {
+                  setEditingNewsArticle(null);
+                  setIsEditingPublication(false);
+                  setCabinetSubTab('my_articles');
+                }}
+              />
+            ) : (
+              <CabinetView 
+                companies={companies.length ? companies : mockCompanies}
+                userName={userName}
+                setUserName={(val) => { setUserName(val); localStorage.setItem('profile_userName', val); }}
+                userEmail={userEmail}
+                setUserEmail={(val) => { setUserEmail(val); localStorage.setItem('profile_userEmail', val); }}
+                userLogin={userLogin}
+                setUserLogin={(val) => { setUserLogin(val); localStorage.setItem('profile_userLogin', val); }}
+                avatarUrl={avatarUrl}
+                setAvatarUrl={(val) => { setAvatarUrl(val); localStorage.setItem('profile_avatarUrl', val); }}
+                isLoggedIn={isLoggedIn}
+                setIsLoggedIn={(val) => { setIsLoggedIn(val); localStorage.setItem('profile_isLoggedIn', val ? 'true' : 'false'); }}
+                onSelectCompany={(id) => { setSelectedCompanyId(id); setActiveTab('dashboard'); }}
+                activeSubTab={cabinetSubTab}
+                setActiveSubTab={setCabinetSubTab}
+                highlightSection={highlightSection}
+                setHighlightSection={setHighlightSection}
+                favorites={favorites}
+                onToggleFavoriteCompany={handleToggleFavoriteCompany}
+                onToggleFavoriteIndustry={handleToggleFavoriteIndustry}
+                onSelectIndustry={handleSelectIndustryFromFavorites}
+                onAuthClick={() => setIsAuthModalOpen(true)}
+                onStartCreatePublication={() => {
+                  setEditingNewsArticle(null);
+                  setIsEditingPublication(true);
+                }}
+                onStartEditPublication={(pub) => {
+                  setEditingNewsArticle(pub);
+                  setIsEditingPublication(true);
+                }}
+                userRole={userRole}
+                setUserRole={setUserRole}
+              />
+            )
+          )}
+
+          {activeTab === 'news' && (
+            <NewsView 
               companies={companies.length ? companies : mockCompanies}
-              userName={userName}
-              setUserName={(val) => { setUserName(val); localStorage.setItem('profile_userName', val); }}
-              userEmail={userEmail}
-              setUserEmail={(val) => { setUserEmail(val); localStorage.setItem('profile_userEmail', val); }}
-              userLogin={userLogin}
-              setUserLogin={(val) => { setUserLogin(val); localStorage.setItem('profile_userLogin', val); }}
-              avatarUrl={avatarUrl}
-              setAvatarUrl={(val) => { setAvatarUrl(val); localStorage.setItem('profile_avatarUrl', val); }}
-              isLoggedIn={isLoggedIn}
-              setIsLoggedIn={(val) => { setIsLoggedIn(val); localStorage.setItem('profile_isLoggedIn', val ? 'true' : 'false'); }}
               onSelectCompany={(id) => { setSelectedCompanyId(id); setActiveTab('dashboard'); }}
-              activeSubTab={cabinetSubTab}
-              setActiveSubTab={setCabinetSubTab}
-              highlightSection={highlightSection}
-              setHighlightSection={setHighlightSection}
-              favorites={favorites}
-              onToggleFavoriteCompany={handleToggleFavoriteCompany}
-              onToggleFavoriteIndustry={handleToggleFavoriteIndustry}
-              onSelectIndustry={handleSelectIndustryFromFavorites}
-              onAuthClick={() => setIsAuthModalOpen(true)}
+              setActiveTab={setActiveTab}
+              isBentoEditActive={isBentoEditActive}
+            />
+          )}
+
+          {activeTab === 'moderator' && (
+            <ModeratorView 
+              onSelectCompany={(id) => { setSelectedCompanyId(id); setActiveTab('dashboard'); }}
+              onGoToNews={() => {
+                setIsBentoEditActive(false);
+                setActiveTab('news');
+              }}
+              onEnterBentoEditMode={() => {
+                setIsBentoEditActive(true);
+                setActiveTab('news');
+              }}
             />
           )}
 
@@ -633,6 +721,79 @@ export default function App() {
           }
         }}
       />
+
+      {/* Dynamic Floating Simulator Widget */}
+      {simulatorTask && (
+        <div id="simulator-banner" className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-slate-900 border border-emerald-500/30 text-white rounded-3xl p-5 shadow-2xl animate-in slide-in-from-bottom-6 transition-all duration-300">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-[10px] font-black uppercase text-emerald-400 font-mono tracking-wider">🎓 Тренажер «Подручный»</span>
+            </div>
+            <button
+              onClick={() => {
+                localStorage.removeItem('active_simulator_task');
+                setSimulatorTask(null);
+              }}
+              className="text-[10px] bg-white/10 hover:bg-white/20 text-white/70 rounded px-1.5 py-0.5 font-bold cursor-pointer"
+            >
+              Сброс
+            </button>
+          </div>
+
+          <div className="space-y-3 font-sans">
+            <h4 className="text-xs font-extrabold leading-snug">
+              Задача: {simulatorTask.instructions}
+            </h4>
+            
+            <p className="text-[10px] text-slate-300 font-mono">
+              Цель: ИНН {simulatorTask.companyId} ({simulatorTask.companyName})
+            </p>
+
+            {selectedCompanyId === simulatorTask.companyId ? (
+              <div className="space-y-3 bg-emerald-950/40 p-3 rounded-2xl border border-emerald-500/20">
+                <p className="text-[11px] text-emerald-300 font-bold flex items-center gap-1.5">
+                  <span>✅</span> Вы вошли в нужную карточку!
+                </p>
+                
+                <p className="text-[10.5px] text-slate-300 leading-normal font-sans">
+                  {simulatorTask.criteria} Коэффициент равен: <span className="font-mono font-black text-emerald-400">
+                    {mockCompanies.find(c => c.id === simulatorTask.companyId)?.ratios?.find(r => r.id === simulatorTask.ratioId)?.value || '0.67'}
+                  </span> — это превосходный здоровый показатель!
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem('active_simulator_task');
+                    setSimulatorTask(null);
+                    setActiveTab('news');
+                  }}
+                  className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-900 text-[11px] font-black rounded-lg transition-all text-center cursor-pointer"
+                >
+                  Завершить урок и вернуться в Новости
+                </button>
+              </div>
+            ) : (
+              <div className="p-3 bg-indigo-950/40 border border-indigo-500/20 rounded-2xl">
+                <p className="text-[10px] text-indigo-300 font-medium leading-relaxed font-sans">
+                  Пожалуйста, переключитесь на карточку контрагента <strong>{simulatorTask.companyName}</strong>. 
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCompanyId(simulatorTask.companyId);
+                    setActiveTab('dashboard');
+                  }}
+                  className="mt-2 w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-extrabold rounded-lg transition cursor-pointer text-center"
+                >
+                  Открыть {simulatorTask.companyName} в один клик
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -187,9 +187,6 @@ export default function ArbitrationDashboard({ company }: ArbitrationDashboardPr
             <Scale className="w-5 h-5 text-sky-500" />
             Арбитражный баланс судебных дел
           </h3>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-            Юридический анализ, распределение ответственности и финансовые претензии контрагентов
-          </p>
         </div>
 
         <div className="flex items-center gap-2">

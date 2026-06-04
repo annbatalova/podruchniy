@@ -188,7 +188,7 @@ export default function EmptyState({ onSelectSampleCompany, companies }: EmptySt
       <div className="space-y-4">
         <div>
           <h3 className="text-xs font-black tracking-wider text-slate-400 dark:text-slate-500 uppercase font-sans">
-            Ключевые модули анализа (УТП)
+            Ключевые модули анализа
           </h3>
           <div className="h-px bg-slate-200 dark:bg-slate-800 mt-2" />
         </div>
