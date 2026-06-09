@@ -37,18 +37,33 @@ interface ModeratorViewProps {
   onEnterBentoEditMode: () => void;
 }
 
+export interface CarouselConfig {
+  id: string;
+  categoryId: string;
+  articleIds: string[];
+}
+
 export default function ModeratorView({
   onSelectCompany,
   onGoToNews,
   onEnterBentoEditMode
 }: ModeratorViewProps) {
   // Navigation tabs within Moderator Room
-  const [activeTab, setActiveTab] = useState<'submissions' | 'deletions' | 'categories' | 'bento'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'deletions' | 'categories' | 'bento' | 'carousels'>('submissions');
   
   // State for loaded data
   const [publications, setPublications] = useState<any[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [customSpans, setCustomSpans] = useState<Record<string, number>>({});
+
+  // Carousel setup states
+  const [carousels, setCarousels] = useState<CarouselConfig[]>([
+    { id: 'carousel_1', categoryId: 'company_news', articleIds: [] },
+    { id: 'carousel_2', categoryId: 'market_analytics', articleIds: [] },
+    { id: 'carousel_3', categoryId: 'taxes_and_regulations', articleIds: [] }
+  ]);
+  const [carouselError, setCarouselError] = useState('');
+  const [carouselSuccess, setCarouselSuccess] = useState('');
 
   // Form states
   const [rejectingPubId, setRejectingPubId] = useState<string | null>(null);
@@ -140,6 +155,84 @@ export default function ModeratorView({
       setCustomSpans(spansSaved ? JSON.parse(spansSaved) : {});
     } catch (e) {
       console.error(e);
+    }
+
+    // 4. Carousels config
+    try {
+      const carouselSaved = localStorage.getItem('home_carousels_config');
+      if (carouselSaved) {
+        setCarousels(JSON.parse(carouselSaved));
+      } else {
+        setCarousels([
+          { id: 'carousel_1', categoryId: 'company_news', articleIds: [] },
+          { id: 'carousel_2', categoryId: 'market_analytics', articleIds: [] },
+          { id: 'carousel_3', categoryId: 'taxes_and_regulations', articleIds: [] }
+        ]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCarouselCategoryChange = (id: string, nextCatId: string) => {
+    setCarousels(prev => prev.map(c => {
+      if (c.id === id) {
+        return {
+          ...c,
+          categoryId: nextCatId,
+          articleIds: [] // Clear selected articles when category changes, forcing 3-5 new ones
+        };
+      }
+      return c;
+    }));
+  };
+
+  const handleToggleArticleInCarousel = (carouselId: string, articleId: string) => {
+    setCarousels(prev => prev.map(c => {
+      if (c.id === carouselId) {
+        const isSelected = c.articleIds.includes(articleId);
+        let nextIds = [...c.articleIds];
+        if (isSelected) {
+          nextIds = nextIds.filter(id => id !== articleId);
+        } else {
+          if (nextIds.length >= 5) {
+            return c; // already maximum 5 items
+          }
+          nextIds.push(articleId);
+        }
+        return {
+          ...c,
+          articleIds: nextIds
+        };
+      }
+      return c;
+    }));
+  };
+
+  const handleSaveCarousels = () => {
+    for (let idx = 0; idx < carousels.length; idx++) {
+      const carousel = carousels[idx];
+      const categoryName = categories.find(cat => cat.id === carousel.categoryId)?.name || carousel.categoryId;
+      if (!carousel.categoryId || carousel.categoryId === 'all') {
+        setCarouselError(`Пожалуйста, выберите конкретную категорию для Карусели #${idx + 1}.`);
+        setCarouselSuccess('');
+        return;
+      }
+      if (carousel.articleIds.length < 3 || carousel.articleIds.length > 5) {
+        setCarouselError(`Для Карусели #${idx + 1} («${categoryName}») должно быть выбрано от 3 до 5 новостей. Сейчас выбрано: ${carousel.articleIds.length}.`);
+        setCarouselSuccess('');
+        return;
+      }
+    }
+
+    try {
+      localStorage.setItem('home_carousels_config', JSON.stringify(carousels));
+      setCarouselError('');
+      setCarouselSuccess('Настройки каруселей успешно сохранены!');
+      setTimeout(() => setCarouselSuccess(''), 3500);
+    } catch (e) {
+      setCarouselError('Не удалось сохранить настройки каруселей.');
+      setCarouselSuccess('');
     }
   };
 
@@ -378,6 +471,18 @@ export default function ModeratorView({
           <Grid className="w-4 h-4 text-sky-500" />
           <span>Бенто-сетка</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('carousels')}
+          className={`flex-1 min-w-[120px] px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer select-none border-0 ${
+            activeTab === 'carousels'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <span>Настройка каруселей</span>
+        </button>
       </div>
 
       {/* 3. TAB VIEWS */}
@@ -592,8 +697,8 @@ export default function ModeratorView({
                               onClick={() => setRecSelectedCategory(cat.id)}
                               className={`px-2 py-0.5 rounded text-[9px] font-extrabold transition border-0 cursor-pointer ${
                                 isSelected
-                                  ? 'bg-indigo-650 text-white'
-                                  : 'bg-slate-105 hover:bg-slate-200 text-slate-600 hover:text-slate-850'
+                                  ? 'bg-indigo-600 text-white shadow-xs'
+                                  : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800'
                               }`}
                             >
                               {cat.name}
@@ -981,6 +1086,154 @@ export default function ModeratorView({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab E: CAROUSELS CONFIGURATOR */}
+      {activeTab === 'carousels' && (
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+              <Sparkles className="w-6 h-6 animate-pulse text-amber-500" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-sm text-slate-900 leading-tight">Управление каруселями на главной странице</h3>
+              <p className="text-xs text-slate-400 leading-relaxed font-sans max-w-3xl font-medium">
+                Выберите категорию для каждой из трех каруселей на главной странице СМИ и укажите от 3 до 5 новостей, которые будут сменяться в слайдере.
+              </p>
+            </div>
+          </div>
+
+          {carouselError && (
+            <div className="p-3 bg-rose-50 text-rose-700 text-xs font-bold rounded-xl border border-rose-100 flex items-center gap-2">
+              <XCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{carouselError}</span>
+            </div>
+          )}
+
+          {carouselSuccess && (
+            <div className="p-3 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-100 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{carouselSuccess}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {[0, 1, 2].map((idx) => {
+              const carousel = carousels[idx];
+              const availableCategories = categories.filter(c => c.id !== 'all');
+              // Articles in allActiveArticles that match this category
+              const matchingArticles = allActiveArticles.filter(art => art.category === carousel.categoryId);
+
+              return (
+                <div key={idx} className="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                      <span className="text-xs font-black uppercase text-indigo-850 tracking-wider">
+                        Карусель #{idx + 1}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        carousel.articleIds.length >= 3 && carousel.articleIds.length <= 5
+                          ? 'bg-emerald-150 text-emerald-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        Выбрано: {carousel.articleIds.length} из 5
+                      </span>
+                    </div>
+
+                    {/* Category Selection */}
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-bold text-slate-550">
+                        Категория карусели:
+                      </label>
+                      <select
+                        value={carousel.categoryId}
+                        onChange={(e) => handleCarouselCategoryChange(carousel.id, e.target.value)}
+                        className="w-full bg-white border border-slate-250 focus:border-indigo-500 rounded-xl px-3 py-2 text-[11.5px] font-sans font-medium text-slate-800 focus:outline-none cursor-pointer"
+                      >
+                        {availableCategories.map(cat => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Articles Checkboxes List */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="block text-[11px] font-bold text-slate-550">
+                          Выберите статьи для показа (3-5 шт.):
+                        </label>
+                        {carousel.articleIds.length > 0 && (
+                          <button
+                            onClick={() => {
+                              setCarousels(prev => prev.map(c => c.id === carousel.id ? { ...c, articleIds: [] } : c));
+                            }}
+                            className="text-[9.5px] text-rose-500 hover:underline border-0 bg-transparent cursor-pointer p-0 font-bold"
+                          >
+                            Сбросить
+                          </button>
+                        )}
+                      </div>
+
+                      {matchingArticles.length === 0 ? (
+                        <div className="p-4 bg-white rounded-xl border border-slate-200 text-center text-[10.5px] text-slate-400 font-sans">
+                          Для этой категории пока нет опубликованных статей. Создайте или одобрите статьи.
+                        </div>
+                      ) : (
+                        <div className="bg-white rounded-xl border border-slate-200/80 max-h-[195px] overflow-y-auto p-2 space-y-1 scrollbar-thin">
+                          {matchingArticles.map(art => {
+                            const isSelected = carousel.articleIds.includes(art.id);
+                            return (
+                              <label
+                                key={art.id}
+                                className={`flex items-start gap-2.5 p-2 rounded-lg cursor-pointer transition select-none ${
+                                  isSelected 
+                                    ? 'bg-slate-50 border border-slate-150' 
+                                    : 'hover:bg-slate-50 border border-transparent'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  disabled={!isSelected && carousel.articleIds.length >= 5}
+                                  onChange={() => handleToggleArticleInCarousel(carousel.id, art.id)}
+                                  className="mt-0.5 w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer disabled:opacity-50"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <span className="block text-[11px] font-extrabold text-slate-800 leading-tight truncate">
+                                    {art.title}
+                                  </span>
+                                  <span className="block text-[9.5px] text-slate-400 mt-0.5 truncate">
+                                    {art.date} • {art.author?.firstName || 'Автор'} {art.author?.lastName || ''}
+                                  </span>
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 text-[10px] text-slate-400 font-sans border-t border-slate-200/50 mt-3 leading-tight flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                    <span>Нужно выбрать {carousel.articleIds.length < 3 ? `еще ${3 - carousel.articleIds.length}` : carousel.articleIds.length > 5 ? 'меньше' : 'все верно!'}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-end pt-2 border-t border-slate-100">
+            <button
+              onClick={handleSaveCarousels}
+              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white font-black text-xs rounded-xl shadow-md transition cursor-pointer active:scale-97 border-0"
+            >
+              Сохранить настройки каруселей
+            </button>
           </div>
         </div>
       )}

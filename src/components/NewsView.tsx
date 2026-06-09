@@ -557,6 +557,47 @@ export default function NewsView({
     }
     return MOCK_NEWS_DATA;
   }, [selectedArticle]);
+
+  // Dynamic home carousels configurations
+  const carouselsConfig = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('home_carousels_config');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return [
+      { id: 'carousel_1', categoryId: 'company_news', articleIds: [] },
+      { id: 'carousel_2', categoryId: 'market_analytics', articleIds: [] },
+      { id: 'carousel_3', categoryId: 'taxes_and_regulations', articleIds: [] }
+    ];
+  }, [allArticles]);
+
+  const parsedCarouselsData = useMemo(() => {
+    return carouselsConfig.map((carousel: any) => {
+      const catObj = CATEGORIES.find((c: any) => c.id === carousel.categoryId);
+      const categoryName = catObj ? catObj.name : 'Категория';
+      
+      let articles: NewsItem[] = [];
+      if (Array.isArray(carousel.articleIds) && carousel.articleIds.length > 0) {
+        articles = carousel.articleIds
+          .map((id: string) => allArticles.find((a: any) => a.id === id))
+          .filter((a: any): a is NewsItem => !!a);
+      }
+      
+      if (articles.length < 3) {
+        articles = allArticles.filter((item: any) => item.category === carousel.categoryId).slice(0, 5);
+      }
+
+      return {
+        ...carousel,
+        categoryName,
+        articles
+      };
+    });
+  }, [carouselsConfig, allArticles, CATEGORIES]);
   
   // Custom message for development click simulations
   const [devViewAlert, setDevViewAlert] = useState<string | null>(null);
@@ -1074,88 +1115,46 @@ export default function NewsView({
             )}
           </section>
 
-          {/* B. 3 SEPARATE CATEGORY BLOCKS (Company News, Market Analytics, Regulations) */}
-          
-          {/* Block 1: Новости компаний */}
-          <section className="space-y-6 relative">
-            <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-              <div>
-                <h2 className="text-sm md:text-base font-black uppercase font-sans tracking-wider text-slate-800 leading-none">
-                  Сводка: Новости Компаний
-                </h2>
-                <p className="text-[10px] md:text-xs text-slate-400 mt-1.5 font-sans">Все изменения у контрагентов РФ</p>
-              </div>
+          {/* B. 3 SEPARATE CATEGORY BLOCKS (Dynamic Configured Carousels) */}
+          {parsedCarouselsData.map((car: any) => {
+            const title = car.id === 'carousel_1' ? `Сводка: ${car.categoryName}` :
+                          car.id === 'carousel_2' ? `Кабинет: ${car.categoryName}` :
+                          car.id === 'carousel_3' ? `Право: ${car.categoryName}` : car.categoryName;
+            
+            const subtitle = car.id === 'carousel_1' ? 'Все изменения у контрагентов РФ' :
+                             car.id === 'carousel_2' ? 'Бенчмаркинг и детальные окупаемости' :
+                             car.id === 'carousel_3' ? 'Извещения Минфина и ФСБУ' : 'Избранные материалы по вашему выбору';
 
-              <div className="flex items-center gap-2 pr-22">
-                <button 
-                  onClick={() => setSelectedCategory('company_news')}
-                  className="text-[10px] md:text-xs font-black text-indigo-600 hover:text-indigo-700 transition font-sans cursor-pointer bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl shadow-sm"
-                >
-                  Смотреть все
-                </button>
-              </div>
-            </div>
+            return (
+              <section key={car.id} className="space-y-6 relative">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                  <div>
+                    <h2 className="text-sm md:text-base font-black uppercase font-sans tracking-wider text-slate-800 leading-none">
+                      {title}
+                    </h2>
+                    <p className="text-[10px] md:text-xs text-slate-400 mt-1.5 font-sans font-medium">
+                      {subtitle}
+                    </p>
+                  </div>
 
-            <NewsCarousel 
-              items={categorySubsets.company_news}
-              categoryKey="company_news"
-              renderCard={(pub, idx, isSolid, classes) => renderNewsCard(pub, idx, isSolid, classes)}
-            />
-          </section>
+                  <div className="flex items-center gap-2 pr-22">
+                    <button 
+                      onClick={() => setSelectedCategory(car.categoryId)}
+                      className="text-[10px] md:text-xs font-black text-indigo-600 hover:text-indigo-700 transition font-sans cursor-pointer bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl shadow-sm"
+                    >
+                      Смотреть все
+                    </button>
+                  </div>
+                </div>
 
-          {/* Block 2: Аналитика рынка */}
-          <section className="space-y-6 relative">
-            <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-              <div>
-                <h2 className="text-sm md:text-base font-black uppercase font-sans tracking-wider text-slate-800 leading-none">
-                  Кабинет: Аналитика рынка
-                </h2>
-                <p className="text-[10px] md:text-xs text-slate-405 mt-1.5 font-sans font-medium">Бенчмаркинг и детальные окупаемости</p>
-              </div>
-
-              <div className="flex items-center gap-2 pr-22">
-                <button 
-                  onClick={() => setSelectedCategory('market_analytics')}
-                  className="text-[10px] md:text-xs font-black text-indigo-600 hover:text-indigo-700 transition font-sans cursor-pointer bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl shadow-sm"
-                >
-                  Смотреть все
-                </button>
-              </div>
-            </div>
-
-            <NewsCarousel 
-              items={categorySubsets.market_analytics}
-              categoryKey="market_analytics"
-              renderCard={(pub, idx, isSolid, classes) => renderNewsCard(pub, idx, isSolid, classes)}
-            />
-          </section>
-
-          {/* Block 3: Налоги и Право */}
-          <section className="space-y-6 relative">
-            <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-              <div>
-                <h2 className="text-sm md:text-base font-black uppercase font-sans tracking-wider text-slate-800 leading-none">
-                  Право: Регуляторика и Налоги
-                </h2>
-                <p className="text-[10px] md:text-xs text-slate-405 mt-1.5 font-sans font-medium">Извещения Минфина и ФСБУ</p>
-              </div>
-
-              <div className="flex items-center gap-2 pr-22">
-                <button 
-                  onClick={() => setSelectedCategory('taxes_and_regulations')}
-                  className="text-[10px] md:text-xs font-black text-indigo-600 hover:text-indigo-700 transition font-sans cursor-pointer bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl shadow-sm"
-                >
-                  Смотреть все
-                </button>
-              </div>
-            </div>
-
-            <NewsCarousel 
-              items={categorySubsets.taxes_and_regulations}
-              categoryKey="taxes_and_regulations"
-              renderCard={(pub, idx, isSolid, classes) => renderNewsCard(pub, idx, isSolid, classes)}
-            />
-          </section>
+                <NewsCarousel 
+                  items={car.articles}
+                  categoryKey={car.categoryId}
+                  renderCard={(pub, idx, isSolid, classes) => renderNewsCard(pub, idx, isSolid, classes)}
+                />
+              </section>
+            );
+          })}
 
           {/* C. SECTION "ЕЩЕ НОВОСТИ И СТАТЬИ" (Next 5 rows with Bento Grid) */}
           <section className="space-y-6">

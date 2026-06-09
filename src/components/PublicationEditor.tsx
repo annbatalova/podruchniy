@@ -88,6 +88,23 @@ const PRESET_COVERS = [
   { id: 'gradient-4', name: 'Темный уголь', css: 'from-slate-700 via-slate-850 to-slate-905' },
 ];
 
+const BLOCK_TYPES_CONFIG = [
+  { type: 'paragraph', name: 'Обычно текст', icon: AlignLeft },
+  { type: 'heading_1', name: 'Заголовок H1', icon: Heading1 },
+  { type: 'heading_2', name: 'Заголовок H2', icon: Heading2 },
+  { type: 'heading_3', name: 'Заголовок H3', icon: Heading3 },
+  { type: 'bullet_list', name: 'Маркер. список', icon: List },
+  { type: 'numbered_list', name: 'Номер. список', icon: ListOrdered },
+  { type: 'image', name: 'Иллюстрация', icon: ImageIcon },
+  { type: 'table', name: 'Таблица', icon: TableIcon },
+  { type: 'formula', name: 'Формула', icon: Percent },
+  { type: 'spoiler_quote', name: 'Спойлер', icon: Eye },
+  { type: 'small_quote', name: 'Курсив цитата', icon: Quote },
+  { type: 'large_quote', name: 'Эксперт блок', icon: Sparkles },
+  { type: 'company_card', name: 'Связь компании', icon: ExternalLink },
+  { type: 'file_download', name: 'Файл вложение', icon: Download },
+] as const;
+
 export default function PublicationEditor({
   companies,
   userName,
@@ -116,6 +133,9 @@ export default function PublicationEditor({
       content: 'Это текст вашей публикации. Вы можете редактировать его или собирать статью как конструктор в Notion, добавляя разнообразные блоки ниже.'
     }
   ]);
+
+  // Dropdown block type selector state
+  const [activeTypeDropdownBlockId, setActiveTypeDropdownBlockId] = useState<string | null>(null);
 
   // Load article if in editing mode
   useEffect(() => {
@@ -649,6 +669,168 @@ export default function PublicationEditor({
     setBlocks(blocks.filter(b => b.id !== id));
   };
 
+  const changeBlockType = (id: string, newType: Block['type']) => {
+    setBlocks(prev => prev.map(block => {
+      if (block.id !== id) return block;
+      
+      let updatedBlock: Block = {
+        ...block,
+        type: newType,
+      };
+
+      // Clean up standard/nested elements to avoid conflicting schema issues
+      if (newType !== 'bullet_list' && newType !== 'numbered_list') {
+        delete updatedBlock.listItems;
+      }
+      if (newType !== 'image') {
+        delete updatedBlock.imageUrl;
+        delete updatedBlock.imageCaption;
+      }
+      if (newType !== 'table') {
+        delete updatedBlock.tableData;
+      }
+      if (newType !== 'formula') {
+        delete updatedBlock.formulaText;
+      }
+      if (newType !== 'spoiler_quote') {
+        delete updatedBlock.spoilerLabel;
+        delete updatedBlock.spoilerContent;
+      }
+      if (newType !== 'large_quote') {
+        delete updatedBlock.largeQuoteTitle;
+        delete updatedBlock.largeQuoteText;
+        delete updatedBlock.largeQuoteBullets;
+        delete updatedBlock.largeQuoteNumbers;
+        delete updatedBlock.largeQuoteBlocks;
+      }
+      if (newType !== 'company_card') {
+        delete updatedBlock.companyId;
+      }
+      if (newType !== 'file_download') {
+        delete updatedBlock.fileName;
+        delete updatedBlock.fileSize;
+      }
+
+      // Ensure appropriate fields are initialized if they don't exist
+      switch (newType) {
+        case 'heading_1':
+          if (!updatedBlock.content || updatedBlock.content.trim() === 'Это текст вашей публикации. Вы можете редактировать его или собирать статью как конструктор в Notion, добавляя разнообразные блоки ниже.') {
+            updatedBlock.content = 'Главный заголовок H1';
+          }
+          break;
+        case 'heading_2':
+          if (!updatedBlock.content || updatedBlock.content.trim() === 'Это текст вашей публикации. Вы можете редактировать его или собирать статью как конструктор в Notion, добавляя разнообразные блоки ниже.') {
+            updatedBlock.content = 'Подраздел H2';
+          }
+          break;
+        case 'heading_3':
+          if (!updatedBlock.content || updatedBlock.content.trim() === 'Это текст вашей публикации. Вы можете редактировать его или собирать статью как конструктор в Notion, добавляя разнообразные блоки ниже.') {
+            updatedBlock.content = 'Мелкий заголовок H3';
+          }
+          break;
+        case 'paragraph':
+          if (!updatedBlock.content) {
+            updatedBlock.content = 'Введите обычный текст абзаца...';
+          }
+          break;
+        case 'bullet_list':
+          if (!updatedBlock.listItems || updatedBlock.listItems.length === 0) {
+            updatedBlock.listItems = updatedBlock.content ? [updatedBlock.content] : ['Первый пункт маркированного списка', 'Второй пункт списка'];
+          }
+          break;
+        case 'numbered_list':
+          if (!updatedBlock.listItems || updatedBlock.listItems.length === 0) {
+            updatedBlock.listItems = updatedBlock.content ? [updatedBlock.content] : ['Первый нумерованный пункт', 'Второй нумерованный пункт'];
+          }
+          break;
+        case 'image':
+          if (!updatedBlock.imageUrl) {
+            updatedBlock.imageUrl = 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=800';
+          }
+          if (!updatedBlock.imageCaption) {
+            updatedBlock.imageCaption = updatedBlock.content || 'Динамика финансового аудита компании';
+          }
+          break;
+        case 'table':
+          if (!updatedBlock.tableData) {
+            updatedBlock.tableData = {
+              headers: ['Показатель', 'Период t-1', 'Период t'],
+              rows: [
+                [updatedBlock.content || 'Выручка', '125 000 руб', '140 000 руб'],
+                ['EBITDA', '32 000 руб', '38 000 руб'],
+                ['Чистая прибыль', '12 500 руб', '18 2000 руб']
+              ]
+            };
+          }
+          break;
+        case 'formula':
+          if (!updatedBlock.formulaText) {
+            updatedBlock.formulaText = 'PV = \\sum_{t=1}^{n} \\frac{PMT_t}{(1 + r)^t}';
+          }
+          if (!updatedBlock.content || updatedBlock.content.indexOf('=') === -1) {
+            updatedBlock.content = 'PV = ∑ [ PMT_t / (1 + r)^t ]';
+          }
+          break;
+        case 'spoiler_quote':
+          if (!updatedBlock.spoilerLabel) {
+            updatedBlock.spoilerLabel = 'Исключения ФСБУ 25/2018 «Аренда»';
+          }
+          if (!updatedBlock.spoilerContent) {
+            if (updatedBlock.content) {
+              updatedBlock.spoilerContent = updatedBlock.content;
+            } else {
+              updatedBlock.spoilerContent = 'Стандарт разрешает не отражать обязательства по аренде, если срок договора составляет до 12 месяцев, либо объект закупки стоит менее 300 000 ₽.';
+            }
+          }
+          break;
+        case 'small_quote':
+          if (!updatedBlock.content) {
+            updatedBlock.content = '«Рационализация расчета ППА обеспечивает существенную экономию на налогах на имущество холдинговой структуры.»';
+          }
+          break;
+        case 'large_quote':
+          if (!updatedBlock.largeQuoteTitle) {
+            updatedBlock.largeQuoteTitle = 'Рекомендации Финансового Методолога';
+          }
+          if (!updatedBlock.largeQuoteBlocks) {
+            updatedBlock.largeQuoteBlocks = [
+              {
+                id: `sub-${Date.now()}-1`,
+                type: 'heading_3',
+                content: updatedBlock.content || 'Рекомендации Финансового Методолога'
+              },
+              {
+                id: `sub-${Date.now()}-2`,
+                type: 'paragraph',
+                content: 'При оценке права пользования активом рекомендуем обращать внимание на следующие параметры:'
+              },
+              {
+                id: `sub-${Date.now()}-3`,
+                type: 'bullet_list',
+                content: '',
+                listItems: ['Эффективная ставка заимствования', 'Реальные намерения по пролонгации']
+              }
+            ];
+          }
+          break;
+        case 'company_card':
+          if (!updatedBlock.companyId) {
+            updatedBlock.companyId = companyOptions[0]?.id || '1027700067328';
+          }
+          break;
+        case 'file_download':
+          if (!updatedBlock.fileName) {
+            updatedBlock.fileName = 'Шаблон_калькулятора_ППА_ФСБУ25.xlsx';
+          }
+          if (!updatedBlock.fileSize) {
+            updatedBlock.fileSize = '145 КБ';
+          }
+          break;
+      }
+      return updatedBlock;
+    }));
+  };
+
   const moveBlock = (index: number, direction: 'up' | 'down') => {
     if (direction === 'up' && index === 0) return;
     if (direction === 'down' && index === blocks.length - 1) return;
@@ -847,6 +1029,12 @@ export default function PublicationEditor({
 
   return (
     <div className="bg-slate-50 min-h-screen/80 font-sans pb-16 animate-in fade-in duration-300">
+      {activeTypeDropdownBlockId && (
+        <div 
+          className="fixed inset-0 z-40 bg-transparent" 
+          onClick={() => setActiveTypeDropdownBlockId(null)}
+        />
+      )}
       
       {/* Top action bar */}
       <div className="bg-white px-6 py-4 border-b border-slate-205/95 sticky top-0 z-30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-2xs">
@@ -1180,23 +1368,58 @@ export default function PublicationEditor({
                 >
                   
                   {/* Subtle Floating Controls on top-right of block */}
-                  <div className="absolute right-2 top-2 flex bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl p-1 gap-1 opacity-0 group-hover/block:opacity-100 transition-opacity duration-200 shadow-sm z-30 select-none">
-                    <span className="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-slate-400 bg-slate-100 rounded mr-1 flex items-center">
-                      {block.type === 'heading_1' && 'H1'}
-                      {block.type === 'heading_2' && 'H2'}
-                      {block.type === 'heading_3' && 'H3'}
-                      {block.type === 'paragraph' && 'Текст'}
-                      {block.type === 'bullet_list' && 'Список'}
-                      {block.type === 'numbered_list' && 'Номерной'}
-                      {block.type === 'image' && 'Фото'}
-                      {block.type === 'table' && 'Таблица'}
-                      {block.type === 'formula' && 'Формула'}
-                      {block.type === 'spoiler_quote' && 'Спойлер'}
-                      {block.type === 'small_quote' && 'Цитата'}
-                      {block.type === 'large_quote' && 'Эксперт'}
-                      {block.type === 'company_card' && 'Компания'}
-                      {block.type === 'file_download' && 'Файл'}
-                    </span>
+                  <div className={`absolute right-2 top-2 flex bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl p-1 gap-1 transition-opacity duration-200 shadow-sm z-30 select-none ${
+                    activeTypeDropdownBlockId === block.id ? 'opacity-100' : 'opacity-0 group-hover/block:opacity-100'
+                  }`}>
+                    {/* Interactive Dropdown to change block type */}
+                    {(() => {
+                      const activeConfig = BLOCK_TYPES_CONFIG.find(c => c.type === block.type);
+                      const CurrentIcon = activeConfig?.icon || AlignLeft;
+                      return (
+                        <div className="relative flex items-center pr-1 mr-1 border-r border-slate-200/60 z-30">
+                          <button
+                            type="button"
+                            onClick={() => setActiveTypeDropdownBlockId(activeTypeDropdownBlockId === block.id ? null : block.id)}
+                            className="px-2 py-1 text-[10px] font-extrabold tracking-tight text-indigo-650 hover:text-white bg-indigo-50/70 hover:bg-indigo-600 rounded-lg flex items-center gap-1 cursor-pointer transition-all duration-150 border border-indigo-100/50 select-none"
+                            title="Сменить тип блока"
+                          >
+                            <CurrentIcon className="w-3 h-3 flex-shrink-0 text-indigo-600" />
+                            <span className="text-[9px] font-black uppercase tracking-wider">{activeConfig ? activeConfig.name.split(' ')[0] : 'Блок'}</span>
+                            <ChevronDown className="w-2.5 h-2.5 opacity-60 flex-shrink-0" />
+                          </button>
+
+                          {activeTypeDropdownBlockId === block.id && (
+                            <div className="absolute right-0 top-full mt-1.5 w-52 bg-white border border-slate-200/80 rounded-xl shadow-lg p-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-100 max-h-72 overflow-y-auto scrollbar-thin">
+                              <div className="px-2 py-1.5 text-[8px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1 leading-none">
+                                Сменить тип блока на:
+                              </div>
+                              {BLOCK_TYPES_CONFIG.map(item => {
+                                const ItemIcon = item.icon;
+                                const isCurrent = item.type === block.type;
+                                return (
+                                  <button
+                                    key={item.type}
+                                    type="button"
+                                    onClick={() => {
+                                      changeBlockType(block.id, item.type);
+                                      setActiveTypeDropdownBlockId(null);
+                                    }}
+                                    className={`w-full text-left px-2 py-1.5 rounded-lg text-[10.5px] font-bold flex items-center gap-2 transition cursor-pointer select-none border-0 ${
+                                      isCurrent 
+                                        ? 'bg-indigo-50 text-indigo-700 font-extrabold' 
+                                        : 'text-slate-650 hover:bg-slate-50 hover:text-slate-800'
+                                    }`}
+                                  >
+                                    <ItemIcon className={`w-3.5 h-3.5 flex-shrink-0 ${isCurrent ? 'text-indigo-600' : 'text-slate-400'}`} />
+                                    <span className="truncate">{item.name}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                     <div
                       className="p-1 text-slate-400 hover:text-indigo-650 transition cursor-grab active:cursor-grabbing flex items-center justify-center"
                       title="Перетащите для изменения порядка"
